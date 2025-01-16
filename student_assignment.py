@@ -54,10 +54,7 @@ def generate_hw01(question):
     )
     response = llm.invoke([message])
 
-    # 確認 LLM 返回內容
     content = response.content
-    print(f"Response content: {content}")
-    
     return extract_events(content, question)
 
 if __name__ == "__main__":
