@@ -7,44 +7,11 @@ from langchain_core.messages import HumanMessage
 gpt_chat_version = 'gpt-4o'
 gpt_config = get_model_configuration(gpt_chat_version)
 
-def extract_events(content, question):
-    # 從問題中提取年份和月份
-    match_question_date = re.search(r"(\d{4})年.*?(\d{1,2})月", question)
-    if not match_question_date:
-        return json.dumps({"Error": "無法從問題中提取日期資訊"}, ensure_ascii=False, indent=4)
+from langchain_core.prompts import ChatPromptTemplate, FewShotChatMessagePromptTemplate
 
-    year, month = match_question_date.groups()
-    month = month.zfill(2)  # 確保月份是兩位數格式
-
-    # 更新正則表達式：匹配名稱在前或日期在前的情況
-    pattern = r"\*\*(.*?)\*\*.*?(\d{1,2})月(\d{1,2})日|\*\*(\d{1,2})月(\d{1,2})日\s*-\s*(.+)\*\*"
-
-    events = []
-    for match in re.finditer(pattern, content):
-        # 檢查兩種情況並提取結果
-        if match.group(1):  # 名稱在前的情況
-            name, event_month, day = match.group(1), match.group(2), match.group(3)
-        elif match.group(4):  # 日期在前的情況
-            event_month, day, name = match.group(4), match.group(5), match.group(6)
-        else:
-            continue
-
-        # 確保月份匹配
-        if int(event_month) == int(month):
-            events.append({
-                "date": f"{year}-{event_month.zfill(2)}-{day.zfill(2)}",
-                "name": name.strip()
-            })
-
-    # 如果沒有找到事件，回傳空結果
-    if not events:
-        return json.dumps({"Result": []}, ensure_ascii=False, indent=4)
-
-    # 格式化為 JSON 結果
-    result = {"Result": events}
-    return json.dumps(result, ensure_ascii=False, indent=4)
 
 def generate_hw01(question):
+
     llm = AzureChatOpenAI(
         model=gpt_config['model_name'],
         deployment_name=gpt_config['deployment_name'],
@@ -59,9 +26,53 @@ def generate_hw01(question):
         ]
     )
     response = llm.invoke([message])
+    
+    examples = [
+        {
+            "input": "2024年台灣10月紀念日有哪些?", 
+            "output": {
+                "Result": [
+                    {
+                        "date": "2024-10-10",
+                        "name": "國慶日"
+                    },
+                    {
+                        "date": "2024-10-11",
+                        "name": "重陽節"
+                    }
+                ]
+            }
+        }
+    ]
 
-    content = response.content
-    return extract_events(content, question)
+    example_prompt = ChatPromptTemplate.from_messages(
+        [
+            ("human", "{input}"),
+            ("ai", "{output}"),
+        ]
+    )
+
+    few_shot_prompt = FewShotChatMessagePromptTemplate(
+        example_prompt=example_prompt,
+        examples=examples,
+    )
+    # print(few_shot_prompt.invoke({}).to_messages())
+
+    final_prompt = ChatPromptTemplate.from_messages(
+        [
+            ("system",  """你是台灣內政部負責紀念日及節日實施辦法的專業人員,
+                            請以JSON格式返回全部符合問題的結果,結果可能很多個,
+                            並且去掉了不需要的標記（例如 ```json 和 ```)
+                            格式必須包含\"Result\" 
+                        """),
+            few_shot_prompt,
+            ("human", "{input}"),
+        ]
+    )
+
+    chain = final_prompt | llm
+    response_content = chain.invoke({"input": "2024年台灣10月紀念日有哪些"}).content
+    print(response_content)
 
 def generate_hw02(question):
     pass
@@ -92,5 +103,5 @@ def demo(question):
 
 if __name__ == "__main__":
     question = "2024年台灣10月紀念日有哪些?"
-    result = generate_hw01(question)
-    print(result)
+    generate_hw01(question)
+    
