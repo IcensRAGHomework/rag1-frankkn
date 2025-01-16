@@ -72,7 +72,10 @@ def generate_hw01(question):
 
     chain = final_prompt | llm
     response_content = chain.invoke({"input": "2024年台灣10月紀念日有哪些"}).content
-    print(response_content)
+    
+    # 使用 json.dumps() 來美化輸出
+    formatted_json = json.dumps(response_content, ensure_ascii=False, indent=4)
+    print(formatted_json)
 
 def generate_hw02(question):
     pass
