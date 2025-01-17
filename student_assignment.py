@@ -109,6 +109,7 @@ def call_calendarific_api(api_key, country, year, month):
     return result
 
 def generate_hw02(question):
+    pass
     # Few-Shot example setup
     examples = [
         {
