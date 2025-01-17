@@ -74,9 +74,38 @@ def generate_hw01(question):
     response_content = chain.invoke({"input": "2024年台灣10月紀念日有哪些"}).content
     return response_content
 
-def generate_hw02(question):
-    pass
+def extract_year_month(question):
+    import re
+    match_question_date = re.search(r"(\d{4})年.*?(\d{1,2})月", question)
+    if not match_question_date:
+        raise ValueError("無法從問題中得知年份和月份,請確保格式正確,例如:2024年台灣10月")
+    year = int(match_question_date.group(1))
+    month = int(match_question_date.group(2))
+    return year, month
+
+def call_calendarific_api(api_key, country, year, month):
+    url = f'https://calendarific.com/api/v2/holidays?api_key={api_key}&country={country}&year={year}&month={month}'
+    import requests
+    response = requests.get(url)
+    if response.status_code != 200:
+        raise ValueError(f"API request fail, Status：{response.status_code}")
     
+    holidays = response.json().get('response', {}).get('holidays', [])
+    
+    result = {"Result": [{"date": holiday['date']['iso'], "name": holiday['name']} for holiday in holidays]}
+    return result
+
+def generate_hw02(question):
+    api_key = "6wBgACs2YWxPit5i4YdGNQ30GUybl5kL"
+    country = "TW"
+    
+    year, month = extract_year_month(question)
+
+    result = call_calendarific_api(api_key, country, year, month)
+
+    # print(result)
+    return result
+
 def generate_hw03(question2, question3):
     pass
     
@@ -103,5 +132,7 @@ def demo(question):
 
 if __name__ == "__main__":
     question = "2024年台灣10月紀念日有哪些?"
-    generate_hw01(question)
+    # generate_hw01(question)
+    generate_hw02(question)
+
     
