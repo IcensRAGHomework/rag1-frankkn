@@ -328,14 +328,9 @@ def generate_hw03(question2, question3):
         config={"configurable": {"session_id": "<foo>"}},
     )
 
-    # return response2['output']
+    print(response2['output'])
 
-    # Ensure response2['output'] is parsed correctly
-    response_data = response2.get('output')
-        
-    parsed_data = json.loads(response_data) if isinstance(response_data, str) else response_data
-
-    return parsed_data
+    return response2['output']
     
 def generate_hw04(question):
     pass
