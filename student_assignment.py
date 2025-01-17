@@ -9,7 +9,6 @@ gpt_config = get_model_configuration(gpt_chat_version)
 
 from langchain_core.prompts import ChatPromptTemplate, FewShotChatMessagePromptTemplate
 
-
 def generate_hw01(question):
 
     llm = AzureChatOpenAI(
@@ -74,37 +73,86 @@ def generate_hw01(question):
     response_content = chain.invoke({"input": "2024年台灣10月紀念日有哪些"}).content
     return response_content
 
-def extract_year_month(question):
-    import re
-    match_question_date = re.search(r"(\d{4})年.*?(\d{1,2})月", question)
-    if not match_question_date:
-        raise ValueError("無法從問題中得知年份和月份,請確保格式正確,例如:2024年台灣10月")
-    year = int(match_question_date.group(1))
-    month = int(match_question_date.group(2))
-    return year, month
+from langchain.tools import tool
+
+@tool("get_calendar_events")
+def get_calendar_events_tool(input: str):
+    """
+    Fetch calendar events for a specific year and month in Taiwan.
+    Input should be in the format 'YYYY-MM'.
+    """
+    api_key = "6wBgACs2YWxPit5i4YdGNQ30GUybl5kL"
+    country = "TW"
+    
+    # 解析輸入年份與月份
+    year, month = map(int, input.split('-'))
+    
+    # 呼叫 API
+    result = call_calendarific_api(api_key, country, year, month)
+    return json.dumps(result)
 
 def call_calendarific_api(api_key, country, year, month):
     url = f'https://calendarific.com/api/v2/holidays?api_key={api_key}&country={country}&year={year}&month={month}'
     import requests
     response = requests.get(url)
     if response.status_code != 200:
-        raise ValueError(f"API request fail, Status：{response.status_code}")
+        raise ValueError(f"API request fail, Status:{response.status_code}")
     
     holidays = response.json().get('response', {}).get('holidays', [])
     
     result = {"Result": [{"date": holiday['date']['iso'], "name": holiday['name']} for holiday in holidays]}
     return result
 
+from langchain.agents import initialize_agent, Tool
+from langchain.chat_models import AzureChatOpenAI
+from langchain.prompts import MessagesPlaceholder
+from langchain.schema import SystemMessage
+
+# Initialize LLM
+llm = AzureChatOpenAI(
+    model=gpt_config['model_name'],
+    deployment_name=gpt_config['deployment_name'],
+    openai_api_key=gpt_config['api_key'],
+    openai_api_version=gpt_config['api_version'],
+    azure_endpoint=gpt_config['api_base'],
+    temperature=gpt_config['temperature']
+)
+
+# Define tool
+tools = [
+    Tool(
+        name="get_calendar_events",
+        func=get_calendar_events_tool,
+        description="Call this tool to fetch Taiwan's calendar events for a specific year and month in 'YYYY-MM' format."
+    )
+]
+
+# Initialize AgentExecutor
+agent = initialize_agent(
+    tools=tools,
+    llm=llm,
+    agent="chat-conversational-react-description",
+    verbose=True,
+    memory=None  # If need context(上下文記憶), use ConversationBufferMemory
+)
+
 def generate_hw02(question):
-    api_key = "6wBgACs2YWxPit5i4YdGNQ30GUybl5kL"
-    country = "TW"
+
+    system_message = SystemMessage(
+        content="""你是一位台灣日曆專家，負責回答有關特定月份的台灣節日問題。
+        如果問題提到具體年份和月份，請呼叫相關工具來獲取數據。
+        """
+    )
+
+    response = agent.invoke(
+        {"input": question, 
+         "chat_history": [{"role": "system", "content": system_message.content}]
+        }
+    )
     
-    year, month = extract_year_month(question)
+    print(response)
 
-    result = call_calendarific_api(api_key, country, year, month)
-
-    # print(result)
-    return result
+    return response
 
 def generate_hw03(question2, question3):
     pass
