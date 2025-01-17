@@ -69,6 +69,17 @@ def generate_hw01(question):
                             請以JSON格式返回全部符合問題的結果,結果可能很多個,
                             並且去掉了不需要的標記（例如 ```json 和 ```)
                             格式必須包含\"Result\" 
+                            請務必返回以下格式的 JSON:
+                            {{
+                                "Result": [
+                                    {{
+                                        "date": "YYYY-MM-DD",
+                                        "name": "節日名稱"
+                                    }},
+                                    ...
+                                ]
+                            }}
+                            僅列出該月份的相關紀念日，其他資訊請不要包含。
                         """),
             few_shot_prompt,
             ("human", "{input}"),
