@@ -78,7 +78,7 @@ def generate_hw01(question):
     chain = final_prompt | llm
     response_content = chain.invoke({"input": "2024年台灣10月紀念日有哪些"}).content
 
-    print(response_content)
+    # print(response_content)
 
     return response_content
 
@@ -218,5 +218,5 @@ def demo(question):
 
 if __name__ == "__main__":
     question = "2024年台灣10月紀念日有哪些?"
-    # generate_hw01(question)
+    generate_hw01(question)
     generate_hw02(question)
