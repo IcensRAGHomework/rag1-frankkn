@@ -328,9 +328,12 @@ def generate_hw03(question2, question3):
         config={"configurable": {"session_id": "<foo>"}},
     )
 
-    print(response2['output'])
+    try:
+        response_data = json.loads(response2['output'])
+    except ValueError:
+        response_data = {"error": "Invalid response format"}
 
-    return response2['output']
+    return json.dumps(response_data)  # Return the response as a JSON string
     
 def generate_hw04(question):
     pass
