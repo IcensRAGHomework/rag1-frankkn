@@ -5,8 +5,11 @@ from langchain_openai import AzureChatOpenAI
 from langchain_core.messages import HumanMessage
 from langchain_core.prompts import ChatPromptTemplate, FewShotChatMessagePromptTemplate
 
+from langchain.agents import AgentExecutor, create_tool_calling_agent
+from langchain.prompts.chat import ChatPromptTemplate, MessagesPlaceholder
+
 from langchain.tools import tool
-from langchain.agents import initialize_agent, Tool
+from langchain.agents import  Tool
 from langchain.schema import SystemMessage
 
 gpt_chat_version = 'gpt-4o'
@@ -103,23 +106,6 @@ def call_calendarific_api(api_key, country, year, month):
     return result
 
 def generate_hw02(question):
-    # System message that provides instructions
-    system_message = SystemMessage(
-        content="""你是一位台灣日曆專家，負責回答有關特定月份的台灣節日問題。
-        當回答問題時，請務必返回以下格式的 JSON:
-        {
-            "Result": [
-                {
-                    "date": "YYYY-MM-DD",
-                    "name": "節日名稱"
-                },
-                ...
-            ]
-        }
-        僅列出該月份的相關紀念日，其他資訊請不要包含。
-        """
-    )
-
     # Few-Shot example setup
     examples = [
         {
@@ -144,7 +130,34 @@ def generate_hw02(question):
         examples=examples,
     )
 
-    formatted_few_shot_prompt = few_shot_prompt.format(input=question)
+    # System message that provides instructions
+    system_message = SystemMessage(
+        content="""你是一位台灣日曆專家，負責回答有關特定月份的台灣節日問題。
+        當回答問題時，請務必返回以下格式的 JSON:
+        {{
+            "Result": [
+                {{
+                    "date": "YYYY-MM-DD",
+                    "name": "節日名稱"
+                }},
+                ...
+            ]
+        }}
+        僅列出該月份的相關紀念日，其他資訊請不要包含。
+        """
+    )
+
+    formatted_few_shot_messages = few_shot_prompt.format_messages()
+
+    final_prompt = ChatPromptTemplate.from_messages(
+        [
+            ("system", system_message.content),
+            MessagesPlaceholder(variable_name="chat_history", optional=True),  # 历史记录占位符
+            *formatted_few_shot_messages,  # 插入 Few-shot 示例
+            ("human", "{input}"),  # 用户输入
+            MessagesPlaceholder(variable_name="agent_scratchpad"),  # 中间步骤占位符
+        ]
+    )
 
     # Initialize LLM
     llm = AzureChatOpenAI(
@@ -165,26 +178,15 @@ def generate_hw02(question):
         )
     ]
 
-    # Initialize AgentExecutor
-    agent = initialize_agent(
-        tools=tools,
-        llm=llm,
-        agent="chat-conversational-react-description",
-        verbose=True,
-        memory=None  # If need context(上下文記憶), use ConversationBufferMemory
-    )
+    agent = create_tool_calling_agent(llm, tools, final_prompt)
 
-    response = agent.invoke(
-        {"input": question, 
-         "chat_history": [{"role": "system", "content": system_message.content},
-                          {"role": "system", "content": formatted_few_shot_prompt},
-                          {"role": "human", "content": question}]
-        }
-    )
+    agent_executor = AgentExecutor(agent=agent, tools=tools)
+
+    response = agent_executor.invoke({"input": question})
 
     # print(response['output'])
 
-    return response['output']
+    return response
 
 def generate_hw03(question2, question3):
     pass
