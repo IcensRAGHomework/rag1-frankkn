@@ -246,6 +246,7 @@ def generate_hw03(question2, question3):
 
         當回答有關是否在先先前節日清單問題時,請務必返回以下格式的 JSON:
         其中
+        Result的value是一個dictionary
         add表示是否需要將節日新增到節日清單中.根據問題判斷該節日是否存在於清單中,如果不存在,則為 true;否則為false.
         reason必須描述為什麼需要或不需要新增節日,具體說明是否該節日已經存在於清單中,以及當前清單的內容.
         {{
