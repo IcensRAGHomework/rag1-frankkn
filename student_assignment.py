@@ -109,7 +109,7 @@ def call_calendarific_api(api_key, country, year, month):
     return result
 
 def generate_hw02(question):
-    pass
+
     # Few-Shot example setup
     examples = [
         {
@@ -190,7 +190,7 @@ def generate_hw02(question):
 
     # print(response['output'])
 
-    return response
+    return response['output']
 
 def generate_hw03(question2, question3):
     pass
@@ -216,7 +216,7 @@ def demo(question):
     
     return response
 
-# if __name__ == "__main__":
-#     question = "2024年台灣10月紀念日有哪些?"
+if __name__ == "__main__":
+    question = "2024年台灣10月紀念日有哪些?"
     # generate_hw01(question)
-    # generate_hw02(question)
+    generate_hw02(question)
