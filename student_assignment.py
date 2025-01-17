@@ -329,6 +329,7 @@ def generate_hw03(question2, question3):
     )
 
     # print(type(response2['output']))
+    # return response2['output']
 
     try:
         # Parse the JSON string into a Python dictionary
@@ -349,9 +350,8 @@ def generate_hw03(question2, question3):
         print("Failed to decode the response as JSON.")
         parsed_data = {"error": "Invalid response format"}
     
+    return parsed_data
     return json.dumps(parsed_data)  # Return the response as a JSON string
-
-    return response2['output']
     
 def generate_hw04(question):
     pass
