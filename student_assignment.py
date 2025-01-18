@@ -328,30 +328,9 @@ def generate_hw03(question2, question3):
         config={"configurable": {"session_id": "<foo>"}},
     )
 
-    # print(type(response2['output']))
-    # return response2['output']
+    print(type(response2['output']))
 
-    try:
-        # Parse the JSON string into a Python dictionary
-        parsed_data = json.loads(response2['output'])
-        
-        # Print to inspect the structure of parsed_data
-        print(parsed_data)
-        
-        # Assuming that "Result" is a list and you need to extract the first element
-        if isinstance(parsed_data["Result"], list) and parsed_data["Result"]:
-            result_item = parsed_data["Result"][0]
-            add_value = result_item.get("add", None)
-            print(f"Add value: {add_value}")
-        else:
-            print("No valid 'Result' list found.")
-            
-    except json.JSONDecodeError:
-        print("Failed to decode the response as JSON.")
-        parsed_data = {"error": "Invalid response format"}
-    
-    return parsed_data
-    return json.dumps(parsed_data)  # Return the response as a JSON string
+    return json.dumps(response2['output'], ensure_ascii=False)  # Return the response as a JSON string
     
 def generate_hw04(question):
     pass
