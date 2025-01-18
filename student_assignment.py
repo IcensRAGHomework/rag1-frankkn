@@ -10,7 +10,7 @@ from langchain.prompts.chat import ChatPromptTemplate, MessagesPlaceholder
 
 from langchain.tools import tool
 from langchain.agents import  Tool
-from langchain.schema import SystemMessage
+from langchain.schema import SystemMessage, AIMessage, HumanMessage
 
 gpt_chat_version = 'gpt-4o'
 gpt_config = get_model_configuration(gpt_chat_version)
@@ -167,10 +167,10 @@ def generate_hw02(question):
     final_prompt = ChatPromptTemplate.from_messages(
         [
             ("system", system_message.content),
-            MessagesPlaceholder(variable_name="chat_history", optional=True),  # 历史记录占位符
-            *formatted_few_shot_messages,  # 插入 Few-shot 示例
-            ("human", "{input}"),  # 用户输入
-            MessagesPlaceholder(variable_name="agent_scratchpad"),  # 中间步骤占位符
+            MessagesPlaceholder(variable_name="chat_history", optional=True),  
+            *formatted_few_shot_messages, 
+            ("human", "{input}"),  
+            MessagesPlaceholder(variable_name="agent_scratchpad"),  
         ]
     )
 
@@ -328,7 +328,31 @@ def generate_hw03(question2, question3):
         config={"configurable": {"session_id": "<foo>"}},
     )
 
-    return json.dumps(response2, ensure_ascii=False)  # 確保返回值為 JSON 格式的字串
+    def serialize_obj(obj):
+        if isinstance(obj, HumanMessage):
+            return {
+                "content": obj.content,
+                "additional_kwargs": obj.additional_kwargs,
+                "response_metadata": obj.response_metadata
+            }
+        elif isinstance(obj, AIMessage):
+            return {
+                "content": obj.content,
+                "additional_kwargs": obj.additional_kwargs,
+                "response_metadata": obj.response_metadata
+            }
+        elif isinstance(obj, dict):
+            return obj
+        elif isinstance(obj, list):
+            return [serialize_obj(item) for item in obj]
+        else:
+            raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
+
+    # 嘗試序列化 response2
+    try:
+        return json.dumps(response2, ensure_ascii=False, default=serialize_obj)
+    except TypeError as e:
+        raise RuntimeError(f"Serialization failed: {e}")
 
     
 def generate_hw04(question):
