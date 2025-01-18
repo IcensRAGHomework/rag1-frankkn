@@ -4,13 +4,14 @@ from model_configurations import get_model_configuration
 from langchain_openai import AzureChatOpenAI
 from langchain_core.messages import HumanMessage
 from langchain_core.prompts import ChatPromptTemplate, FewShotChatMessagePromptTemplate
-
 from langchain.agents import AgentExecutor, create_tool_calling_agent
 from langchain.prompts.chat import ChatPromptTemplate, MessagesPlaceholder
-
 from langchain.tools import tool
-from langchain.agents import  Tool
+from langchain.agents import Tool
 from langchain.schema import SystemMessage, AIMessage, HumanMessage
+from langchain_community.chat_message_histories import ChatMessageHistory
+from langchain_core.chat_history import BaseChatMessageHistory
+from langchain_core.runnables.history import RunnableWithMessageHistory
 
 gpt_chat_version = 'gpt-4o'
 gpt_config = get_model_configuration(gpt_chat_version)
@@ -291,10 +292,6 @@ def generate_hw03(question2, question3):
         )
     ]
 
-    from langchain_community.chat_message_histories import ChatMessageHistory
-    from langchain_core.chat_history import BaseChatMessageHistory
-    from langchain_core.runnables.history import RunnableWithMessageHistory
-
     store = {}
 
     def get_session_history(session_id: str) -> BaseChatMessageHistory:
@@ -302,11 +299,7 @@ def generate_hw03(question2, question3):
             store[session_id] = ChatMessageHistory()
         return store[session_id]
 
-    from langchain.agents import create_tool_calling_agent
-
     agent = create_tool_calling_agent(llm, tools, final_prompt)
-
-    from langchain.agents import AgentExecutor
 
     agent_executor = AgentExecutor(agent=agent, tools=tools)
 
@@ -327,7 +320,7 @@ def generate_hw03(question2, question3):
         config={"configurable": {"session_id": "<foo>"}},
     )
 
-    print(f"Responese2 = {response2['output']}")
+    # print(f"Responese2 = {response2['output']}")
 
     return response2['output']
 
