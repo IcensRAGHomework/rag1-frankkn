@@ -328,9 +328,9 @@ def generate_hw03(question2, question3):
         config={"configurable": {"session_id": "<foo>"}},
     )
 
-    print(type(response2['output']))
-
-    return json.dumps(response2['output'], ensure_ascii=False)  # Return the response as a JSON string
+    if isinstance(response2['output'], str):
+        return json.loads(response2['output'])  # Ensure we return a dictionary
+    return response2['output']
     
 def generate_hw04(question):
     pass
