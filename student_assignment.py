@@ -328,9 +328,8 @@ def generate_hw03(question2, question3):
         config={"configurable": {"session_id": "<foo>"}},
     )
 
-    if isinstance(response2['output'], str):
-        return json.loads(response2['output'])  # Ensure we return a dictionary
-    return response2['output']
+    return json.dumps(response2, ensure_ascii=False)  # 確保返回值為 JSON 格式的字串
+
     
 def generate_hw04(question):
     pass
