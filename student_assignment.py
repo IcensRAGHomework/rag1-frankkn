@@ -327,31 +327,9 @@ def generate_hw03(question2, question3):
         config={"configurable": {"session_id": "<foo>"}},
     )
 
-    def serialize_obj(obj):
-        if isinstance(obj, HumanMessage):
-            return {
-                "content": obj.content,
-                "additional_kwargs": obj.additional_kwargs,
-                "response_metadata": obj.response_metadata
-            }
-        elif isinstance(obj, AIMessage):
-            return {
-                "content": obj.content,
-                "additional_kwargs": obj.additional_kwargs,
-                "response_metadata": obj.response_metadata
-            }
-        elif isinstance(obj, dict):
-            return obj
-        elif isinstance(obj, list):
-            return [serialize_obj(item) for item in obj]
-        else:
-            raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
+    print(f"Responese2 = {response2['output']}")
 
-    # 嘗試序列化 response2
-    try:
-        return json.dumps(response2, ensure_ascii=False, default=serialize_obj)
-    except TypeError as e:
-        raise RuntimeError(f"Serialization failed: {e}")
+    return response2['output']
 
     
 def generate_hw04(question):
