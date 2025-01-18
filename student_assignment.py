@@ -250,12 +250,11 @@ def generate_hw03(question2, question3):
         add表示是否需要將節日新增到節日清單中.根據問題判斷該節日是否存在於清單中,如果不存在,則為 true;否則為false.
         reason必須描述為什麼需要或不需要新增節日,具體說明是否該節日已經存在於清單中,以及當前清單的內容.
         {{
-            "Result": [
-                {{
-                    "add": true/false,
-                    "reason":
-                }}
-            ]
+            "Result":
+            {{
+                "add": true/false,
+                "reason":
+            }}
         }}
         """
     )
