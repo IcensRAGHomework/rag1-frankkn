@@ -72,7 +72,8 @@ def generate_hw01(question):
     final_prompt = ChatPromptTemplate.from_messages(
         [
             ("system",  """你是台灣內政部負責紀念日及節日實施辦法的專業人員,
-                            請務必返回以下格式的 JSON:
+                            請務必返回以下格式的 JSON
+                            並且property name enclosed in double quotes:
                             {{format_instructions}}
                             並且去掉了不需要的標記（例如 ```json 和 ```)
                             僅列出該月份的相關紀念日，其他資訊請不要包含。
@@ -85,7 +86,7 @@ def generate_hw01(question):
     chain = final_prompt | llm
     response_content = chain.invoke({"input": "2024年台灣10月紀念日有哪些"}).content
 
-    # print(response_content)
+    print(response_content)
 
     return response_content
 
@@ -191,7 +192,7 @@ def generate_hw02(question):
 
     response = agent_executor.invoke({"input": question})
 
-    # print(response['output'])
+    print(response['output'])
 
     return response['output']
 
@@ -300,7 +301,7 @@ def generate_hw03(question2, question3):
         config={"configurable": {"session_id": "<foo>"}},
     )
 
-    # print(f"Responese2 = {response2['output']}")
+    print(f"Responese2 = {response2['output']}")
 
     return response2['output']
 
@@ -347,7 +348,7 @@ def generate_hw04(question):
             """ 
             請以JSON格式返回符合問題的結果
             並且去掉了不需要的標記（例如 ```json 和 ```)
-            格式必須包含\"Result\" 
+            格式必須包含\"Result\": {"score": } 
             請務必返回以下格式的 JSON:
             {format_instructions}
             """
@@ -364,7 +365,7 @@ def generate_hw04(question):
 
     response = llm.invoke([system_message, message])
 
-    # print(response.content)
+    print(response.content)
 
     return response.content
     
@@ -389,9 +390,9 @@ def demo(question):
 if __name__ == "__main__":
     question2 = "2024年台灣10月紀念日有哪些?"
     question3 = "根據先前的節日清單，這個節日{\"date\": \"10-31\", \"name\": \"蔣公誕辰紀念日\"}是否有在該月份清單？"
-    generate_hw01(question2)
-    generate_hw02(question2)
-    generate_hw03(question2, question3)
+    # generate_hw01(question2)
+    # generate_hw02(question2)
+    # generate_hw03(question2, question3)
 
     question = "請問中華台北的積分是多少"
-    generate_hw04(question)
+    # generate_hw04(question)
