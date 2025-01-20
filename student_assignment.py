@@ -354,7 +354,81 @@ def generate_hw03(question2, question3):
     return json.dumps(parsed_data)  # Return the response as a JSON string
     
 def generate_hw04(question):
-    pass
+
+    llm = AzureChatOpenAI(
+            model=gpt_config['model_name'],
+            deployment_name=gpt_config['deployment_name'],
+            openai_api_key=gpt_config['api_key'],
+            openai_api_version=gpt_config['api_version'],
+            azure_endpoint=gpt_config['api_base'],
+            temperature=gpt_config['temperature']
+    )
+
+    import base64
+    from mimetypes import guess_type
+
+    # Function to encode a local image into data URL 
+    def local_image_to_data_url(image_path):
+        # Guess the MIME type of the image based on the file extension
+        mime_type, _ = guess_type(image_path)
+        if mime_type is None:
+            mime_type = 'application/octet-stream'  # Default MIME type if none is found
+
+        # Read and encode the image file
+        with open(image_path, "rb") as image_file:
+            base64_encoded_data = base64.b64encode(image_file.read()).decode('utf-8')
+
+        # Construct the data URL
+        return f"data:{mime_type};base64,{base64_encoded_data}"
+
+    # Example usage
+    image_path = './baseball.png'
+    data_url = local_image_to_data_url(image_path)
+    # print("Data URL:", data_url)
+
+    system_message = SystemMessage(
+        content = 
+            """ 
+            請以JSON格式返回符合問題的結果
+            並且去掉了不需要的標記（例如 ```json 和 ```)
+            格式必須包含\"Result\" 
+            請務必返回以下格式的 JSON:
+            {{
+                "Result":
+                {{
+                    "score": 
+                }}
+            }}
+            """
+    )
+
+    message = HumanMessage(
+            content=[
+                {"type": "text", "text": question},
+                {"type": "image_url", "image_url": {
+                        "url": data_url
+                    }}
+            ]
+    )
+
+    system_message = """ 
+                    請以JSON格式返回符合問題的結果
+                    並且去掉了不需要的標記（例如 ```json 和 ```)
+                    格式必須包含\"Result\" 
+                    請務必返回以下格式的 JSON:
+                    {{
+                        "Result":
+                        {{
+                            "score": 
+                        }}
+                    }}
+                    """
+
+    response = llm.invoke([message, system_message])
+    
+    # print(response.content)
+
+    return response.content
     
 def demo(question):
     llm = AzureChatOpenAI(
@@ -377,6 +451,9 @@ def demo(question):
 if __name__ == "__main__":
     question2 = "2024年台灣10月紀念日有哪些?"
     question3 = "根據先前的節日清單，這個節日{\"date\": \"10-31\", \"name\": \"蔣公誕辰紀念日\"}是否有在該月份清單？"
-    generate_hw01(question2)
-    generate_hw02(question2)
-    generate_hw03(question2, question3)
+    # generate_hw01(question2)
+    # generate_hw02(question2)
+    # generate_hw03(question2, question3)
+
+    question = "請問中華台北的積分是多少"
+    generate_hw04(question)
