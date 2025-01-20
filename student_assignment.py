@@ -397,8 +397,6 @@ def generate_hw04(question):
                     """
 
     response = llm.invoke([message, system_message])
-    
-    # print(response.content)
 
     return response.content
     
