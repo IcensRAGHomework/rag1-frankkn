@@ -12,6 +12,7 @@ from langchain.schema import SystemMessage, AIMessage, HumanMessage
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.chat_history import BaseChatMessageHistory
 from langchain_core.runnables.history import RunnableWithMessageHistory
+from langchain_core.output_parsers import JsonOutputParser
 
 gpt_chat_version = 'gpt-4o'
 gpt_config = get_model_configuration(gpt_chat_version)
@@ -64,22 +65,16 @@ def generate_hw01(question):
     )
     # print(few_shot_prompt.invoke({}).to_messages())
 
+
+    json_parser = JsonOutputParser()
+    format_instructions = json_parser.get_format_instructions()
+
     final_prompt = ChatPromptTemplate.from_messages(
         [
             ("system",  """你是台灣內政部負責紀念日及節日實施辦法的專業人員,
-                            請以JSON格式返回全部符合問題的結果,結果可能很多個,
-                            並且去掉了不需要的標記（例如 ```json 和 ```)
-                            格式必須包含\"Result\" 
                             請務必返回以下格式的 JSON:
-                            {{
-                                "Result": [
-                                    {{
-                                        "date": "YYYY-MM-DD",
-                                        "name": "節日名稱"
-                                    }},
-                                    ...
-                                ]
-                            }}
+                            {{format_instructions}}
+                            並且去掉了不需要的標記（例如 ```json 和 ```)
                             僅列出該月份的相關紀念日，其他資訊請不要包含。
                         """),
             few_shot_prompt,
@@ -146,19 +141,15 @@ def generate_hw02(question):
         examples=examples,
     )
 
+    json_parser = JsonOutputParser()
+    format_instructions = json_parser.get_format_instructions()
+
     # System message that provides instructions
     system_message = SystemMessage(
         content="""你是一位台灣日曆專家，負責回答有關特定月份的台灣節日問題。
         當回答問題時，請務必返回以下格式的 JSON:
-        {{
-            "Result": [
-                {{
-                    "date": "YYYY-MM-DD",
-                    "name": "節日名稱"
-                }},
-                ...
-            ]
-        }}
+        {{format_instructions}}
+        並且去掉了不需要的標記（例如 ```json 和 ```)
         僅列出該月份的相關紀念日，其他資訊請不要包含。
         """
     )
@@ -200,7 +191,7 @@ def generate_hw02(question):
 
     response = agent_executor.invoke({"input": question})
 
-    # print(type(response['output']))
+    # print(response['output'])
 
     return response['output']
 
@@ -230,19 +221,14 @@ def generate_hw03(question2, question3):
         examples=examples,
     )
 
+    json_parser = JsonOutputParser()
+    format_instructions = json_parser.get_format_instructions()
+
     # System message that provides instructions
     system_message = SystemMessage(
         content="""你是一位台灣日曆專家，負責回答有關特定月份的台灣節日問題。
         當回答有關某月份的節日問題時，請務必返回以下格式的 JSON:
-        {{
-            "Result": [
-                {{
-                    "date": "YYYY-MM-DD",
-                    "name": "節日名稱"
-                }},
-                ...
-            ]
-        }}
+        {{format_instructions}}
         僅列出該月份的相關紀念日，其他資訊請不要包含。
 
         當回答有關是否在先先前節日清單問題時,請務必返回以下格式的 JSON:
@@ -250,13 +236,7 @@ def generate_hw03(question2, question3):
         Result的value是一個dictionary
         add表示是否需要將節日新增到節日清單中.根據問題判斷該節日是否存在於清單中,如果不存在,則為 true;否則為false.
         reason必須描述為什麼需要或不需要新增節日,具體說明是否該節日已經存在於清單中,以及當前清單的內容.
-        {{
-            "Result":
-            {{
-                "add": true/false,
-                "reason":
-            }}
-        }}
+        {{format_instructions}}
         """
     )
 
@@ -358,6 +338,10 @@ def generate_hw04(question):
     data_url = local_image_to_data_url(image_path)
     # print("Data URL:", data_url)
 
+    from langchain_core.output_parsers import JsonOutputParser
+    json_parser = JsonOutputParser()
+    format_instructions = json_parser.get_format_instructions()
+
     system_message = SystemMessage(
         content = 
             """ 
@@ -365,12 +349,7 @@ def generate_hw04(question):
             並且去掉了不需要的標記（例如 ```json 和 ```)
             格式必須包含\"Result\" 
             請務必返回以下格式的 JSON:
-            {{
-                "Result":
-                {{
-                    "score": 
-                }}
-            }}
+            {format_instructions}
             """
     )
 
@@ -383,20 +362,9 @@ def generate_hw04(question):
             ]
     )
 
-    system_message = """ 
-                    請以JSON格式返回符合問題的結果
-                    並且去掉了不需要的標記（例如 ```json 和 ```)
-                    格式必須包含\"Result\" 
-                    請務必返回以下格式的 JSON:
-                    {{
-                        "Result":
-                        {{
-                            "score": 
-                        }}
-                    }}
-                    """
+    response = llm.invoke([system_message, message])
 
-    response = llm.invoke([message, system_message])
+    # print(response.content)
 
     return response.content
     
@@ -421,9 +389,9 @@ def demo(question):
 if __name__ == "__main__":
     question2 = "2024年台灣10月紀念日有哪些?"
     question3 = "根據先前的節日清單，這個節日{\"date\": \"10-31\", \"name\": \"蔣公誕辰紀念日\"}是否有在該月份清單？"
-    # generate_hw01(question2)
-    # generate_hw02(question2)
-    # generate_hw03(question2, question3)
+    generate_hw01(question2)
+    generate_hw02(question2)
+    generate_hw03(question2, question3)
 
     question = "請問中華台北的積分是多少"
     generate_hw04(question)
