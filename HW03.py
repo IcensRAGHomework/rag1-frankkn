@@ -13,8 +13,6 @@ from langchain.prompts.chat import MessagesPlaceholder
 gpt_chat_version = 'gpt-4o'
 gpt_config = get_model_configuration(gpt_chat_version)
 
-memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
-
 def get_session_history(session_id: str) -> BaseChatMessageHistory:
     if session_id not in store:
         store[session_id] = ChatMessageHistory()
@@ -95,13 +93,11 @@ def generate_hw03(question2, question3):
         add表示是否需要將節日新增到節日清單中.根據問題判斷該節日是否存在於清單中,如果不存在,則為 true;否則為false.
         reason必須描述為什麼需要或不需要新增節日,具體說明是否該節日已經存在於清單中,以及當前清單的內容.
         {{
-            "Result": [
+            "Result":
                 {{
                     "add": true/false,
                     "reason":
-                }},
-                ...
-            ]
+                }}
         }}
         """
     )
@@ -179,7 +175,7 @@ def generate_hw03(question2, question3):
 
     # print(f"Response2 = {response2['output']}")
 
-    return response2['output']
+    return json.dumps(response2['output'], ensure_ascii=False)
 
 if __name__ == "__main__":
     question2 = "2024年台灣10月紀念日有哪些?"
